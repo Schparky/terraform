@@ -212,6 +212,11 @@ func (v *OperationJSON) Plan(plan *plans.Plan, schemas *terraform.Schemas) {
 			// Avoid rendering data sources on deletion
 			continue
 		}
+
+		if change.Importing {
+			cs.Import++
+		}
+
 		switch change.Action {
 		case plans.Create:
 			cs.Add++
@@ -224,7 +229,7 @@ func (v *OperationJSON) Plan(plan *plans.Plan, schemas *terraform.Schemas) {
 			cs.Remove++
 		}
 
-		if change.Action != plans.NoOp || !change.Addr.Equal(change.PrevRunAddr) {
+		if change.Action != plans.NoOp || !change.Addr.Equal(change.PrevRunAddr) || change.Importing {
 			v.view.PlannedChange(json.NewResourceInstanceChange(change))
 		}
 	}

@@ -567,12 +567,13 @@ func TestOperationJSON_planNoChanges(t *testing.T) {
 	want := []map[string]interface{}{
 		{
 			"@level":   "info",
-			"@message": "Plan: 0 to add, 0 to change, 0 to destroy.",
+			"@message": "Plan: 0 to add, 0 to import, 0 to change, 0 to destroy.",
 			"@module":  "terraform.ui",
 			"type":     "change_summary",
 			"changes": map[string]interface{}{
 				"operation": "plan",
 				"add":       float64(0),
+				"import":    float64(0),
 				"change":    float64(0),
 				"remove":    float64(0),
 			},
@@ -734,14 +735,154 @@ func TestOperationJSON_plan(t *testing.T) {
 		// changes result in both add and destroy counts.
 		{
 			"@level":   "info",
-			"@message": "Plan: 3 to add, 1 to change, 3 to destroy.",
+			"@message": "Plan: 3 to add, 0 to import, 1 to change, 3 to destroy.",
 			"@module":  "terraform.ui",
 			"type":     "change_summary",
 			"changes": map[string]interface{}{
 				"operation": "plan",
 				"add":       float64(3),
+				"import":    float64(0),
 				"change":    float64(1),
 				"remove":    float64(3),
+			},
+		},
+	}
+
+	testJSONViewOutputEquals(t, done(t).Stdout(), want)
+}
+
+func TestOperationJSON_planWithImport(t *testing.T) {
+	streams, done := terminal.StreamsForTesting(t)
+	v := &OperationJSON{view: NewJSONView(NewView(streams))}
+
+	root := addrs.RootModuleInstance
+	vpc, diags := addrs.ParseModuleInstanceStr("module.vpc")
+	if len(diags) > 0 {
+		t.Fatal(diags.Err())
+	}
+	boop := addrs.Resource{Mode: addrs.ManagedResourceMode, Type: "test_resource", Name: "boop"}
+	beep := addrs.Resource{Mode: addrs.ManagedResourceMode, Type: "test_resource", Name: "beep"}
+
+	plan := &plans.Plan{
+		Changes: &plans.Changes{
+			Resources: []*plans.ResourceInstanceChangeSrc{
+				{
+					Addr:        boop.Instance(addrs.IntKey(0)).Absolute(vpc),
+					PrevRunAddr: boop.Instance(addrs.IntKey(0)).Absolute(vpc),
+					ChangeSrc:   plans.ChangeSrc{Action: plans.NoOp, Importing: true},
+				},
+				{
+					Addr:        boop.Instance(addrs.IntKey(1)).Absolute(vpc),
+					PrevRunAddr: boop.Instance(addrs.IntKey(1)).Absolute(vpc),
+					ChangeSrc:   plans.ChangeSrc{Action: plans.Delete, Importing: true},
+				},
+				{
+					Addr:        boop.Instance(addrs.IntKey(0)).Absolute(root),
+					PrevRunAddr: boop.Instance(addrs.IntKey(0)).Absolute(root),
+					ChangeSrc:   plans.ChangeSrc{Action: plans.CreateThenDelete, Importing: true},
+				},
+				{
+					Addr:        beep.Instance(addrs.NoKey).Absolute(root),
+					PrevRunAddr: beep.Instance(addrs.NoKey).Absolute(root),
+					ChangeSrc:   plans.ChangeSrc{Action: plans.Update, Importing: true},
+				},
+			},
+		},
+	}
+	v.Plan(plan, testSchemas())
+
+	want := []map[string]interface{}{
+		// Simple import
+		{
+			"@level":   "info",
+			"@message": "module.vpc.test_resource.boop[0]: Plan to import",
+			"@module":  "terraform.ui",
+			"type":     "planned_change",
+			"change": map[string]interface{}{
+				"action": "import",
+				"resource": map[string]interface{}{
+					"addr":             `module.vpc.test_resource.boop[0]`,
+					"implied_provider": "test",
+					"module":           "module.vpc",
+					"resource":         `test_resource.boop[0]`,
+					"resource_key":     float64(0),
+					"resource_name":    "boop",
+					"resource_type":    "test_resource",
+				},
+				"importing": true,
+			},
+		},
+		// Delete after importing
+		{
+			"@level":   "info",
+			"@message": "module.vpc.test_resource.boop[1]: Plan to delete",
+			"@module":  "terraform.ui",
+			"type":     "planned_change",
+			"change": map[string]interface{}{
+				"action": "delete",
+				"resource": map[string]interface{}{
+					"addr":             `module.vpc.test_resource.boop[1]`,
+					"implied_provider": "test",
+					"module":           "module.vpc",
+					"resource":         `test_resource.boop[1]`,
+					"resource_key":     float64(1),
+					"resource_name":    "boop",
+					"resource_type":    "test_resource",
+				},
+				"importing": true,
+			},
+		},
+		// Create-then-delete after importing.
+		{
+			"@level":   "info",
+			"@message": "test_resource.boop[0]: Plan to replace",
+			"@module":  "terraform.ui",
+			"type":     "planned_change",
+			"change": map[string]interface{}{
+				"action": "replace",
+				"resource": map[string]interface{}{
+					"addr":             `test_resource.boop[0]`,
+					"implied_provider": "test",
+					"module":           "",
+					"resource":         `test_resource.boop[0]`,
+					"resource_key":     float64(0),
+					"resource_name":    "boop",
+					"resource_type":    "test_resource",
+				},
+				"importing": true,
+			},
+		},
+		// Update after importing
+		{
+			"@level":   "info",
+			"@message": "test_resource.beep: Plan to update",
+			"@module":  "terraform.ui",
+			"type":     "planned_change",
+			"change": map[string]interface{}{
+				"action": "update",
+				"resource": map[string]interface{}{
+					"addr":             `test_resource.beep`,
+					"implied_provider": "test",
+					"module":           "",
+					"resource":         `test_resource.beep`,
+					"resource_key":     nil,
+					"resource_name":    "beep",
+					"resource_type":    "test_resource",
+				},
+				"importing": true,
+			},
+		},
+		{
+			"@level":   "info",
+			"@message": "Plan: 1 to add, 4 to import, 1 to change, 2 to destroy.",
+			"@module":  "terraform.ui",
+			"type":     "change_summary",
+			"changes": map[string]interface{}{
+				"operation": "plan",
+				"add":       float64(1),
+				"import":    float64(4),
+				"change":    float64(1),
+				"remove":    float64(2),
 			},
 		},
 	}
@@ -870,12 +1011,13 @@ func TestOperationJSON_planDriftWithMove(t *testing.T) {
 		// No changes
 		{
 			"@level":   "info",
-			"@message": "Plan: 0 to add, 0 to change, 0 to destroy.",
+			"@message": "Plan: 0 to add, 0 to import, 0 to change, 0 to destroy.",
 			"@module":  "terraform.ui",
 			"type":     "change_summary",
 			"changes": map[string]interface{}{
 				"operation": "plan",
 				"add":       float64(0),
+				"import":    float64(0),
 				"change":    float64(0),
 				"remove":    float64(0),
 			},
@@ -1000,12 +1142,13 @@ func TestOperationJSON_planDriftWithMoveRefreshOnly(t *testing.T) {
 		// No changes
 		{
 			"@level":   "info",
-			"@message": "Plan: 0 to add, 0 to change, 0 to destroy.",
+			"@message": "Plan: 0 to add, 0 to import, 0 to change, 0 to destroy.",
 			"@module":  "terraform.ui",
 			"type":     "change_summary",
 			"changes": map[string]interface{}{
 				"operation": "plan",
 				"add":       float64(0),
+				"import":    float64(0),
 				"change":    float64(0),
 				"remove":    float64(0),
 			},
@@ -1059,12 +1202,13 @@ func TestOperationJSON_planOutputChanges(t *testing.T) {
 		// No resource changes
 		{
 			"@level":   "info",
-			"@message": "Plan: 0 to add, 0 to change, 0 to destroy.",
+			"@message": "Plan: 0 to add, 0 to import, 0 to change, 0 to destroy.",
 			"@module":  "terraform.ui",
 			"type":     "change_summary",
 			"changes": map[string]interface{}{
 				"operation": "plan",
 				"add":       float64(0),
+				"import":    float64(0),
 				"change":    float64(0),
 				"remove":    float64(0),
 			},
