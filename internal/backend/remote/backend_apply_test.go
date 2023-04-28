@@ -1002,7 +1002,7 @@ func TestRemote_applyForceLocal(t *testing.T) {
 	if strings.Contains(output, "Running apply in the remote backend") {
 		t.Fatalf("unexpected remote backend header in output: %s", output)
 	}
-	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to change, 0 to destroy") {
+	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", output)
 	}
 	if !run.State.HasManagedResourceInstanceObjects() {
@@ -1065,7 +1065,7 @@ func TestRemote_applyWorkspaceWithoutOperations(t *testing.T) {
 	if strings.Contains(output, "Running apply in the remote backend") {
 		t.Fatalf("unexpected remote backend header in output: %s", output)
 	}
-	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to change, 0 to destroy") {
+	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", output)
 	}
 	if !run.State.HasManagedResourceInstanceObjects() {

@@ -133,7 +133,7 @@ func TestCloud_planJSONBasic(t *testing.T) {
 	outp := close(t)
 	gotOut := outp.Stdout()
 
-	if !strings.Contains(gotOut, "1 to add, 0 to change, 0 to destroy") {
+	if !strings.Contains(gotOut, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", gotOut)
 	}
 
@@ -245,7 +245,7 @@ func TestCloud_planJSONFull(t *testing.T) {
 		t.Fatalf("expected plan log: %s", gotOut)
 	}
 
-	if !strings.Contains(gotOut, "2 to add, 0 to change, 0 to destroy") {
+	if !strings.Contains(gotOut, "2 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", gotOut)
 	}
 
@@ -695,7 +695,7 @@ func TestCloud_planForceLocal(t *testing.T) {
 	if strings.Contains(output, "Running plan in Terraform Cloud") {
 		t.Fatalf("unexpected TFC header in output: %s", output)
 	}
-	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to change, 0 to destroy") {
+	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", output)
 	}
 }
@@ -731,7 +731,7 @@ func TestCloud_planWithoutOperationsEntitlement(t *testing.T) {
 	if strings.Contains(output, "Running plan in Terraform Cloud") {
 		t.Fatalf("unexpected TFC header in output: %s", output)
 	}
-	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to change, 0 to destroy") {
+	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", output)
 	}
 }
@@ -781,7 +781,7 @@ func TestCloud_planWorkspaceWithoutOperations(t *testing.T) {
 	if strings.Contains(output, "Running plan in Terraform Cloud") {
 		t.Fatalf("unexpected TFC header in output: %s", output)
 	}
-	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to change, 0 to destroy") {
+	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", output)
 	}
 }

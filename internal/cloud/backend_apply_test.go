@@ -160,7 +160,7 @@ func TestCloud_applyJSONBasic(t *testing.T) {
 	outp := close(t)
 	gotOut := outp.Stdout()
 
-	if !strings.Contains(gotOut, "1 to add, 0 to change, 0 to destroy") {
+	if !strings.Contains(gotOut, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", gotOut)
 	}
 	if !strings.Contains(gotOut, "1 added, 0 changed, 0 destroyed") {
@@ -237,7 +237,7 @@ func TestCloud_applyJSONWithOutputs(t *testing.T) {
         }
     }`
 
-	if !strings.Contains(gotOut, "1 to add, 0 to change, 0 to destroy") {
+	if !strings.Contains(gotOut, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", gotOut)
 	}
 	if !strings.Contains(gotOut, "1 added, 0 changed, 0 destroyed") {
@@ -1036,7 +1036,7 @@ func TestCloud_applyForceLocal(t *testing.T) {
 	if strings.Contains(output, "Running apply in Terraform Cloud") {
 		t.Fatalf("unexpected TFC header in output: %s", output)
 	}
-	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to change, 0 to destroy") {
+	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", output)
 	}
 	if !run.State.HasManagedResourceInstanceObjects() {
@@ -1099,7 +1099,7 @@ func TestCloud_applyWorkspaceWithoutOperations(t *testing.T) {
 	if strings.Contains(output, "Running apply in Terraform Cloud") {
 		t.Fatalf("unexpected TFC header in output: %s", output)
 	}
-	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to change, 0 to destroy") {
+	if output := done(t).Stdout(); !strings.Contains(output, "1 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Fatalf("expected plan summary in output: %s", output)
 	}
 	if !run.State.HasManagedResourceInstanceObjects() {

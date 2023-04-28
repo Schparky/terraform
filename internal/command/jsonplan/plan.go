@@ -123,7 +123,7 @@ type Change struct {
 	// string.
 	ReplacePaths json.RawMessage `json:"replace_paths,omitempty"`
 
-	// Importing indicates this change is being imported as part of this
+	// Importing indicates this resource is being imported as part of this
 	// operation. This works in tandem with the Actions field to fully describe
 	// the change. For example, if importing is true and the action is a no-op
 	// then this resource is being imported without any changes.

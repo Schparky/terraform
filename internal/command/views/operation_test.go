@@ -348,7 +348,7 @@ Terraform will perform the following actions:
       + id  = (known after apply)
     }
 
-Plan: 1 to add, 0 to change, 0 to destroy.
+Plan: 1 to add, 0 to import, 0 to change, 0 to destroy.
 `
 
 	if got := done(t).Stdout(); got != want {
@@ -384,7 +384,7 @@ Terraform will perform the following actions:
       + id  = (known after apply)
     }
 
-Plan: 1 to add, 0 to change, 0 to destroy.
+Plan: 1 to add, 0 to import, 0 to change, 0 to destroy.
 `
 
 	if got := done(t).Stdout(); got != want {
@@ -420,7 +420,7 @@ Terraform will perform the following actions:
       + id  = (known after apply)
     }
 
-Plan: 1 to add, 0 to change, 0 to destroy.
+Plan: 1 to add, 0 to import, 0 to change, 0 to destroy.
 `
 
 	if got := done(t).Stdout(); got != want {
