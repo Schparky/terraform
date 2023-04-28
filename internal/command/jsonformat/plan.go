@@ -485,7 +485,7 @@ func resourceChangeComment(resource jsonplan.ResourceChange, action plans.Action
 		buf.WriteString(fmt.Sprintf("  # [reset](moved from %s)\n", resource.PreviousAddress))
 	}
 	if resource.Change.Importing && (action == plans.CreateThenDelete || action == plans.DeleteThenCreate) {
-		buf.WriteString(fmt.Sprint("  # [reset][yellow]Warning: this will destroy the imported resource[reset]\n"))
+		buf.WriteString("  # [reset][yellow]Warning: this will destroy the imported resource[reset]\n")
 	}
 
 	return buf.String()

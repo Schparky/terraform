@@ -24,7 +24,7 @@ func TestTerraformProviderData(t *testing.T) {
 		t.Fatalf("unexpected plan error: %s\nstderr:\n%s", err, stderr)
 	}
 
-	if !strings.Contains(stdout, "4 to add, 0 to change, 0 to destroy") {
+	if !strings.Contains(stdout, "4 to add, 0 to import, 0 to change, 0 to destroy") {
 		t.Errorf("incorrect plan tally; want 4 to add:\n%s", stdout)
 	}
 
